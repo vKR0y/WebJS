@@ -1,0 +1,53 @@
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background: #000 !important;
+  color: #ffffff;
+  font-family: "Segoe UI", Arial, sans-serif;
+  min-height: 100vh;
+  min-width: 100vw;
+  overflow: hidden;
+}
+
+canvas[aria-hidden="true"] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+/* Overlay sötétítés a tartalom mögött */
+/*.overlay-darken {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}*/
+
+/* Tartalom középre igazítása */
+.centered-content {
+  position: relative;
+  z-index: 2;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+/* Fő cím */
+.main-title {
+  font-weight: bold;
+  font-size: 2.5em;
+  letter-spacing: 0.05em;
+  text-shadow: 0 4px 24px #000, 0 1px 1px #003;
+}
