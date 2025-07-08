@@ -87,6 +87,21 @@
   padding: 0.6em 0 0.5em 0;
   animation: loginfadein 0.5s;
 }
+.login-form-loading {
+  color: #ffaa00;
+  font-size: 1.1em;
+  text-align: center;
+  padding: 0.5em 0;
+  animation: loginfadein 0.5s;
+}
+
+.login-form-warning {
+  color: #ff6600;
+  font-size: 0.9em;
+  margin-top: 0.5em;
+  text-align: center;
+  font-weight: bold;
+}
 @keyframes loginfadein {
   from {
     opacity: 0;

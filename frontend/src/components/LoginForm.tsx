@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
+import { login } from "../api/auth";
 import "../styles/LoginForm.css";
 
 type Step = "username" | "password" | "done" | "hidden";
@@ -24,6 +25,8 @@ const LoginForm: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [inputWidth, setInputWidth] = useState<number>();
   const [minWidth, setMinWidth] = useState<number>();
   const [fadeClass, setFadeClass] = useState(""); // "active", "leaving", ""
@@ -110,6 +113,8 @@ const LoginForm: React.FC = () => {
       setUsername("");
       setPassword("");
       setError("");
+      setUser(null);
+      setIsLoading(false);
       setStep("hidden");
       setFadeClass("");
     }, 480); // Animáció időtartama (CSS-ben is ennyi!)
@@ -125,14 +130,29 @@ const LoginForm: React.FC = () => {
         setError("");
         setStep("password");
       } else if (step === "password") {
-        if (password.length < 4) {
-          setError("A jelszó minimum 4 karakter.");
-          return;
-        }
-        setError("");
-        setStep("done");
-        setTimeout(() => fadeOutAndReset(), 1200);
+        handleLogin();
       }
+    }
+  }
+
+  async function handleLogin() {
+    if (password.length < 4) {
+      setError("A jelszó minimum 4 karakter.");
+      return;
+    }
+    
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      const userData = await login(username, password);
+      setUser(userData);
+      setStep("done");
+      console.log("Sikeres bejelentkezés:", userData);
+      setTimeout(() => fadeOutAndReset(), 2000);
+    } catch (err: any) {
+      setError(err.message || "Bejelentkezési hiba");
+      setIsLoading(false);
     }
   }
 
@@ -176,6 +196,7 @@ const LoginForm: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={handleInputKeyDown}
             placeholder={placeholder2}
+            disabled={isLoading}
             tabIndex={0}
             style={{
               width: inputWidth ? `${inputWidth}px` : undefined,
@@ -185,9 +206,15 @@ const LoginForm: React.FC = () => {
             }}
           />
         )}
+        {isLoading && <div className="login-form-loading">Bejelentkezés...</div>}
         {error && <div className="login-form-error">{error}</div>}
-        {step === "done" && (
-          <div className="login-form-success">✔ Sikeres!</div>
+        {step === "done" && user && (
+          <div className="login-form-success">
+            ✔ Üdvözlet, {user.username}!
+            {user.must_change_password && (
+              <div className="login-form-warning">⚠ Jelszó csere szükséges!</div>
+            )}
+          </div>
         )}
       </div>
     </div>
