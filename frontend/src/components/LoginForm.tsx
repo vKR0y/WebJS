@@ -1,11 +1,14 @@
 import React, { useRef, useState, useEffect } from "react";
-import { login } from "../api/auth";
+import { login, changePassword } from "../api/auth";
+import { validatePasswordStrength, isPasswordStrong } from "../utils/passwordValidation";
 import "../styles/LoginForm.css";
 
-type Step = "username" | "password" | "done" | "hidden";
+type Step = "username" | "password" | "change-password" | "new-password" | "done" | "hidden";
 
 const placeholder1 = "Who's that?";
 const placeholder2 = "Hy!";
+const placeholder3 = "Current password";
+const placeholder4 = "New password";
 const maxInputWidth = 400;
 
 // Szélességmérés segédfüggvény
@@ -20,13 +23,16 @@ function measureTextWidth(text: string, font: string): number {
 }
 measureTextWidth.canvas = undefined as HTMLCanvasElement | undefined;
 
-const LoginForm: React.FC = () => {
+const LoginForm: React.FC<{ onLoginSuccess: (user: any) => void }> = ({ onLoginSuccess }) => {
   const [step, setStep] = useState<Step>("hidden");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
   const [inputWidth, setInputWidth] = useState<number>();
   const [minWidth, setMinWidth] = useState<number>();
   const [fadeClass, setFadeClass] = useState(""); // "active", "leaving", ""
@@ -44,6 +50,12 @@ const LoginForm: React.FC = () => {
     } else if (step === "password") {
       value = password;
       placeholder = placeholder2;
+    } else if (step === "change-password") {
+      value = currentPassword;
+      placeholder = placeholder3;
+    } else if (step === "new-password") {
+      value = newPassword;
+      placeholder = placeholder4;
     }
     // Vegye az input aktuális fontját, vagy fallback
     let font = "1.15em 'Segoe UI', Monospace, sans-serif";
@@ -61,12 +73,14 @@ const LoginForm: React.FC = () => {
     );
     setInputWidth(w);
     // eslint-disable-next-line
-  }, [username, password, step]);
+  }, [username, password, currentPassword, newPassword, step]);
 
   // Fókusz inputra step váltáskor
   useEffect(() => {
-    if (step === "username" || step === "password") {
+    if (step === "username" || step === "password" || step === "change-password" || step === "new-password") {
       setTimeout(() => inputRef.current?.focus(), 80);
+      // Jelszó követelmények megjelenítése új jelszó beírásakor
+      setShowPasswordRequirements(step === "new-password");
     }
   }, [step]);
 
@@ -112,9 +126,12 @@ const LoginForm: React.FC = () => {
     setTimeout(() => {
       setUsername("");
       setPassword("");
+      setCurrentPassword("");
+      setNewPassword("");
       setError("");
       setUser(null);
       setIsLoading(false);
+      setShowPasswordRequirements(false);
       setStep("hidden");
       setFadeClass("");
     }, 480); // Animáció időtartama (CSS-ben is ennyi!)
@@ -131,6 +148,19 @@ const LoginForm: React.FC = () => {
         setStep("password");
       } else if (step === "password") {
         handleLogin();
+      } else if (step === "change-password") {
+        if (currentPassword.length < 4) {
+          setError("Jelenlegi jelszó minimum 4 karakter.");
+          return;
+        }
+        setError("");
+        setStep("new-password");
+      } else if (step === "new-password") {
+        if (!isPasswordStrong(newPassword)) {
+          setError("A jelszó nem felel meg az erősségi követelményeknek.");
+          return;
+        }
+        handleChangePassword();
       }
     }
   }
@@ -147,11 +177,42 @@ const LoginForm: React.FC = () => {
     try {
       const userData = await login(username, password);
       setUser(userData);
-      setStep("done");
-      console.log("Sikeres bejelentkezés:", userData);
-      setTimeout(() => fadeOutAndReset(), 2000);
+      
+      if (userData.must_change_password) {
+        setStep("change-password");
+        setIsLoading(false);
+      } else {
+        setStep("done");
+        console.log("Sikeres bejelentkezés:", userData);
+        setTimeout(() => {
+          onLoginSuccess(userData);
+        }, 1500);
+      }
     } catch (err: any) {
       setError(err.message || "Bejelentkezési hiba");
+      setIsLoading(false);
+    }
+  }
+
+  async function handleChangePassword() {
+    if (!isPasswordStrong(newPassword)) {
+      setError("A jelszó nem felel meg az erősségi követelményeknek.");
+      return;
+    }
+    
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      const userData = await changePassword(currentPassword, newPassword);
+      setUser(userData);
+      setStep("done");
+      console.log("Sikeres jelszó csere:", userData);
+      setTimeout(() => {
+        onLoginSuccess(userData);
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message || "Jelszó csere sikertelen");
       setIsLoading(false);
     }
   }
@@ -206,14 +267,69 @@ const LoginForm: React.FC = () => {
             }}
           />
         )}
-        {isLoading && <div className="login-form-loading">Bejelentkezés...</div>}
+        {step === "change-password" && (
+          <input
+            ref={inputRef}
+            className={`login-form-input${error ? " error" : ""}`}
+            type="password"
+            autoComplete="current-password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            onKeyDown={handleInputKeyDown}
+            placeholder={placeholder3}
+            disabled={isLoading}
+            tabIndex={0}
+            style={{
+              width: inputWidth ? `${inputWidth}px` : undefined,
+              minWidth: minWidth ? `${minWidth}px` : undefined,
+              maxWidth: `${maxInputWidth}px`,
+              transition: "width 0.35s cubic-bezier(.6,0,.22,1)",
+            }}
+          />
+        )}
+        {step === "new-password" && (
+          <input
+            ref={inputRef}
+            className={`login-form-input${error ? " error" : ""}`}
+            type="password"
+            autoComplete="new-password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            onKeyDown={handleInputKeyDown}
+            placeholder={placeholder4}
+            disabled={isLoading}
+            tabIndex={0}
+            style={{
+              width: inputWidth ? `${inputWidth}px` : undefined,
+              minWidth: minWidth ? `${minWidth}px` : undefined,
+              maxWidth: `${maxInputWidth}px`,
+              transition: "width 0.35s cubic-bezier(.6,0,.22,1)",
+            }}
+          />
+        )}
+        {isLoading && <div className="login-form-loading">
+          {step === "change-password" || step === "new-password" ? "Jelszó csere..." : "Bejelentkezés..."}
+        </div>}
         {error && <div className="login-form-error">{error}</div>}
+        {step === "change-password" && !isLoading && (
+          <div className="login-form-info">⚠ Kötelező jelszó csere - Add meg a jelenlegi jelszót</div>
+        )}
+        {step === "new-password" && !isLoading && (
+          <div className="login-form-info">🔑 Add meg az új jelszót</div>
+        )}
+        {showPasswordRequirements && step === "new-password" && (
+          <div className="password-requirements">
+            <div className="requirements-title">Jelszó követelmények:</div>
+            {validatePasswordStrength(newPassword).map((req, index) => (
+              <div key={index} className={`requirement ${req.met ? 'met' : 'unmet'}`}>
+                {req.met ? '✓' : '○'} {req.text}
+              </div>
+            ))}
+          </div>
+        )}
         {step === "done" && user && (
           <div className="login-form-success">
-            ✔ Üdvözlet, {user.username}!
-            {user.must_change_password && (
-              <div className="login-form-warning">⚠ Jelszó csere szükséges!</div>
-            )}
+            ✔ {user.must_change_password ? "Jelszó sikeresen megváltoztatva!" : `Üdvözlet, ${user.username}!`}
           </div>
         )}
       </div>

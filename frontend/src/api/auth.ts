@@ -84,5 +84,62 @@ export async function logout(): Promise<void> {
 }
 
 /**
- * (Későbbi bővítéshez: jelszócsere, user info lekérés, 2FA setup stb.)
+ * Jelszó csere – jelenlegi és új jelszó megadásával
+ * @param currentPassword Jelenlegi jelszó
+ * @param newPassword Új jelszó
+ * @returns UserOut (frissített adatokkal)
+ */
+export async function changePassword(currentPassword: string, newPassword: string): Promise<UserOut> {
+  console.log("Jelszó csere kísérlet");
+  
+  const res = await fetch(`${API_BASE}/auth/change-password`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      current_password: currentPassword, 
+      new_password: newPassword 
+    }),
+  })
+  
+  console.log("Jelszó csere válasz státusz:", res.status);
+  
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    console.error("Jelszó csere hiba:", error);
+    throw new Error(error.detail || "Jelszó csere sikertelen")
+  }
+  
+  const userData = await res.json()
+  console.log("Sikeres jelszó csere:", userData);
+  return userData
+}
+
+/**
+ * Rendszer információ lekérése (CPU, memory, disk, stb.)
+ * @returns SystemInfo object
+ */
+export async function getSystemInfo(): Promise<any> {
+  console.log("System info lekérés");
+  
+  const res = await fetch(`${API_BASE}/system-info`, {
+    method: "GET",
+    credentials: "include",
+  })
+  
+  console.log("System info válasz státusz:", res.status);
+  
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    console.error("System info hiba:", error);
+    throw new Error(error.detail || "System info lekérés sikertelen")
+  }
+  
+  const systemData = await res.json()
+  console.log("System info:", systemData);
+  return systemData
+}
+
+/**
+ * (Későbbi bővítéshez: user info lekérés, 2FA setup stb.)
  */

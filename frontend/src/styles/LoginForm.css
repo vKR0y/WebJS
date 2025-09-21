@@ -79,6 +79,7 @@
   background: none;
   text-align: center;
   margin-bottom: 0.8em;
+  opacity: 0.0s;
 }
 .login-form-success {
   color: #00fff0;
@@ -90,6 +91,13 @@
 .login-form-loading {
   color: #ffaa00;
   font-size: 1.1em;
+  text-align: center;
+  padding: 0.5em 0;
+  animation: loginfadein 0.5s;
+}
+.login-form-info {
+  color: #00aaff;
+  font-size: 0.95em;
   text-align: center;
   padding: 0.5em 0;
   animation: loginfadein 0.5s;
@@ -111,4 +119,35 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+.password-requirements {
+  margin-top: 1em;
+  padding: 0.8em;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: loginfadein 0.5s;
+}
+
+.requirements-title {
+  color: #ffffff;
+  font-size: 0.9em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  text-align: center;
+}
+
+.requirement {
+  font-size: 0.85em;
+  margin: 0.3em 0;
+  transition: color 0.3s ease;
+}
+
+.requirement.met {
+  color: #00ff88;
+}
+
+.requirement.unmet {
+  color: #ffaa44;
 }
