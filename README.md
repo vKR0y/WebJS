@@ -1,11 +1,11 @@
-# WebJS# vkr0y.hu - Auth rendszer (React + FastAPI)
+# WebJS# - Auth rendszer (React + FastAPI)
 
 ## Áttekintés
 
 Ez a projekt egy modern, biztonságos bejelentkeztető és adminisztrációs felületet valósít meg, amely React frontendből és FastAPI backendből áll.  
 A rendszer session-alapú authentikációt használ, bcrypt jelszóhash-elést, Google Authenticator-alapú 2FA-t, CSRF-védelmet, valamint háttéranimációt biztosít minden oldalon.  
 
-A backend Gunicorn+Uvicorn workerrel, reverse proxy mögött (Nginx/Cloudflare) fut.  
+A backend Gunicorn+Uvicorn workerrel, reverse proxy mögött fut.  
 Az adatok fejlesztés alatt SQLite-ban, éles környezetben MSSQL-ben (vagy más, ODBC-kompatibilis RDBMS-ben) tárolódnak.
 
 ---
@@ -137,7 +137,7 @@ vkr0y-auth/
 
 - **nginx/**: Példakonfiguráció reverse proxy-hoz.
 - **.env.example:** Példa környezeti változókhoz (soha ne committold az éles .env-et!).
-- **docker-compose.yml:** Fejlesztési stackhez, ha kéred.
+- **docker-compose.yml:** Fejlesztési stackhez, ha szükséges.
 
 ---
 
