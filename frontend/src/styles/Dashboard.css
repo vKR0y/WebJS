@@ -441,7 +441,33 @@
 }
 
 /* System Details Enhanced */
-.system-details .detail-item .value {
+.system-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-item .label {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.detail-item .value {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 400;
   max-width: 150px;
   word-break: break-word;
   text-align: right;
